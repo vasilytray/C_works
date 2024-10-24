@@ -1,51 +1,41 @@
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <locale.h>
 #include "file_rpm.h"
 
-void rp_file(char *fname)
-{
-	setlocale (LC_ALL, "Ru");
-	char *buff=NULL;
-	size_t fsize=0,readbites=0;
-	FILE *filepoint = fopen(fname, "r");
-	if(filepoint==NULL)
-	{
-		printf(" -> n/a");
-		return 0;
-	}
-	fseek(filepoint, 0, SEEK_END);
-	fsize = ftell(filepoint);
-	fseek(filepoint, 0, SEEK_SET);
-	buff=(char*)malloc(sizeof(char) * fsize+1);
-	if(buff==NULL)
-	{
-		printf(" -> n/a");
-		fclose(filepoint);
-		return 0;
-	}
-	if((readbites=fread(buff,1,fsize,filepoint))!=fsize)
-	{
-		fclose(filepoint);
-		printf(" -> n/a %llu",readbites);
-		return 0;
-	}
-	buff[readbites]=0;
-	printf(buff);
-	fclose(filepoint);
-	free(buff);
-	return 1;
-}
-
-void rpch_file(char *name) {
-  FILE *f = fopen(name, "rt");
+//функция чтения и печати файла посимвольно
+void rpch_file(char *filename) {
+  FILE *filepoint = fopen(filename, "r"); //откроем файл для чтения
     
-  if (f != NULL) {
-  int c = fgetc(f);
-  while (c != EOF) {
-    putc(c, stdout);
-    c = fgetc(f);
-  }
-  fclose(f);
+  if (filepoint != NULL) {
+	int c = fgetc(filepoint);
+  	while (c != EOF) {
+    	putc(c, stdout);
+    	c = fgetc(filepoint);
+  	}
+  	fclose(filepoint);
   }
 }
 
+//функция чтения и печати файла построчно
+void rps_file(char *filename) {
+	char *locale = setlocale(LC_ALL, ""); //подключим языковые локали
+	char buff[512]; //определим буффер для считывания строки из файла
+  	FILE *filepoint = NULL;
+  	fopen_s(&filepoint, filename, "r"); //откроем файл для чтения через более безопасную функцию fopen_s()
+
+ 	if (filepoint == NULL) {  //проверим, что файл удалось открыть
+		printf("Error opening %s for reading. Program terminated.", filename);  //если файл не смогли открыть, то выводим ошибку и выходим их функции
+		exit (1);
+	}
+	
+	setvbuf(filepoint, NULL, _IOFBF, BUFSIZ);  // Считаем файл в буфер. Блоки будут формироваться с размером 512 байт.
+
+ 	while (fgets(buff, 512, filepoint) != NULL) { //пока не дойдем до коонца файла, считываем по 512 байт до знака конца строки или пустой строки и выводим построчно.
+ 	   	printf("%s", buff);
+ 	}
+ 	 	fclose(filepoint); //закрываем файл
+		filepoint = NULL; //обнуляем указатель на файл
+}
